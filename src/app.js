@@ -9,7 +9,7 @@ app.use( "/test",(req,res)=>{
 })
 
 app.use( "/first",(req,res)=>{ 
-    res.send("hello coder hello              bhai");
+    res.send("hello coder hello bhai");
 })
 
 
