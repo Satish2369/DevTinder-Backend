@@ -5,31 +5,19 @@ const express = require('express');
  const app = express();
 const User = require("./models/user")
 
-// app.get("/user",(req,res,next)=>{
-  
-//    next()
-// //    res.send("response1")
-// },
-// (req,res,next)=>{
-//     // res.send("response2")
-//     next();
-// }
-// ,(req,res,next)=>{
-//     res.send("response2")
-// }
-// )
 
+app.use(express.json()); 
+
+//express.json converts the json object to a  js object which can now be readable 
 
 app.post('/signup', async (req,res)=>{
 
-    const userObj ={
-        firstName:"MS",
-        lastName:"Dhoni",
-        emailId:"Dhoni410@gmail.com",
-        password:"Dhoni@123"
-    }
+ //  console.log(req.body);
+
+    
 // creating a new instance of the new user model
-    const user = new User(userObj)
+    const user = new User(req.body);
+
 try {
     await user.save();
     res.send("user added successfully")
@@ -47,6 +35,9 @@ app.listen(7000,()=>{
     console.log("Server is successfully listening on port on 7777")
 })
 }).catch(err=>console.error("database cannot be cpnnected"))
+
+
+
 
 
 
