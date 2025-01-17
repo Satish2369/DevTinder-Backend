@@ -120,16 +120,20 @@ app.delete("/user",async(req,res)=>{
     }
 })
 
+app.patch("/user/:userId",async (req,res)=>{ 
 
-
-
-app.patch("/user",async (req,res)=>{ 
-
-    const userId = req.body.userId;
+    const userId = req.params.userId;
     const data= req.body;
 
     try{
-      const user =   await User.findByIdAndUpdate({_id:userId},data,{runValidators:true});
+        const ALLOWED_UPDATES=["photoUrl","about","gender","age","skills"]
+
+   const isUpdateAllowed = Object.keys(data).every((k)=> ALLOWED_UPDATES.includes(k));
+
+   if(!isUpdateAllowed){
+    throw new Error("update not allowed");
+   }
+      const user = await User.findByIdAndUpdate({_id:userId},data,{runValidators:true,returnDocument:true});
       
       console.log(user)
         res.send("user updated successfully");
@@ -149,9 +153,9 @@ connectDB().then(()=>{
     console.log("connection established")
     
 app.listen(3000,()=>{
-    console.log("Server is successfully listening on port on 3000")
+console.log("Server is successfully listening on port on 3000");
 })
-}).catch(err=>console.error("database cannot be cpnnected"))
+}).catch(err=>console.error("database cannot be connected"))
 
 
 
