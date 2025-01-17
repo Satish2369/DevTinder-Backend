@@ -1,28 +1,45 @@
 console.log("backend project started")
 
 const express = require('express');
- const connectDB =  require("./config/database")
- const app = express();
+const connectDB =  require("./config/database")
+const app = express();
 const User = require("./models/user")
+const bcrypt = require("bcrypt"); 
+const validator = require("validator");
 
+const {validateSignUpData} = require("./utils/validation")
 
 app.use(express.json()); 
 
-//express.json converts the json object to a  js object which can now be readable 
+//express.json converts the json object to a  js object which can now be readable
 
 app.post('/signup', async (req,res)=>{
+    try {
+ //validation of the data
+   validateSignUpData(req);
 
- //  console.log(req.body);
+
+ //Encrypt the password
+   
+  const {password,firstName,lastName,emailId}=req.body;
+
+
+ const passwordHash = await bcrypt.hash(password,10);
+   console.log(passwordHash);
+
+
 
 // creating a new instance of the new user model
-    const user = new User(req.body);
+    const user = new User({
+        firstName,lastName,emailId,password:passwordHash
+    });
 
-try {
+
     await user.save();
     res.send("user added successfully")
 }
 catch (err) {
-    res.status(400).send("Error saving the user:" + err.message)
+    res.status(400).send("Error: " + err.message)
 }
 
 })
@@ -77,31 +94,6 @@ try{
 
  });
 
- app.get("/practiseId", async (req, res) => {
-    const Id = req.body._id;
-
-    if (!Id) {
-        return res.status(400).send("Invalid id");
-    }
-
-    try {
-        const user = await User.findById(Id);
-
-        if (!user) {
-            return res.status(404).send("User not found");
-        }
-
-        res.send(user);
-    } catch (e) {
-        // Check if the error is related to invalid ObjectId
-        if (e.kind === 'ObjectId') {
-            res.status(400).send("Invalid id format");
-        } else {
-            res.status(500).send("Something went wrong");
-        }
-    }
-});
-
 
 
 app.delete("/user",async(req,res)=>{
@@ -146,6 +138,41 @@ app.patch("/user/:userId",async (req,res)=>{
     }
 })
 
+app.post("/login",async(req,res)=>{
+   
+   try{
+    const{password,emailId,firstName,lastName} = req.body;
+    
+    if(!validator.isEmail(emailId)){
+           throw new Error("Invalid emailId");
+    }
+
+    const user = await User.findOne({emailId:emailId});
+
+    if(!user){
+        throw new Error("Invalid credentials")
+    }
+
+    const isPasswordValid = await bcrypt.compare(password,user.password);
+
+
+   if(isPasswordValid){
+     res.send("login Succcessful!!!")
+   }
+   else{
+    throw new Error("Invalid credentials")
+   }
+
+   }
+   catch(err){
+
+    res.status(400).send("ERROR :" + err.message)
+   }
+
+
+
+
+})
 
 
 
