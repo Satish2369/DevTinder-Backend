@@ -6,14 +6,22 @@ const app = express();
 const User = require("./models/user")
 const bcrypt = require("bcrypt"); 
 const validator = require("validator");
+const cookieParser = require('cookie-parser');
+const jwt = require("jsonwebtoken")
+const {userAuth} = require("../middlewares/auth")
+
+// Use cookie-parser middleware
+
 
 const {validateSignUpData} = require("./utils/validation")
 
 app.use(express.json()); 
+app.use(cookieParser());
 
 //express.json converts the json object to a  js object which can now be readable
 
 app.post('/signup', async (req,res)=>{
+
     try {
  //validation of the data
    validateSignUpData(req);
@@ -45,137 +53,77 @@ catch (err) {
 })
 
 
-app.get("/user", async (req,res)=>{
-
-
-    const userEmail = req.body.emailId;
-    
-    try{
-       const user = await User.find({emailId:userEmail});
-
-
-       if(user.length===0){
-           res.status(404).send("user not found")
-       }
-       else{
-        res.send(user);
-       }
-       
-    }
-    catch (err) {
-        res.status(400).send("something went wrong:" + err.message)
-    }
-   
-
-
-});
-
-
-
-
-
-//get all the users from the users database
- app.get("/feed",async(req,res)=>{
-
-    const userEmail = req.body.emailId;
-try{
-  const user=  await User.findOne({emailId:userEmail});
-
-  if(!user){
-    res.status(404).send("user not found")
-  }
-  res.send(user);
-}
- catch (err) {
-        res.status(400).send("something went wrong:" + err.message)
-    }
-   
-
-
- });
-
-
-
-app.delete("/user",async(req,res)=>{
-    const userId = req.body.userId;
-
-
-    try{
-        const user = await User.findByIdAndDelete({_id:userId});
-        console.log("user deleted")
-        res.send("user deleted successfully")
-
-    }
-
-    catch (err) {
-        res.status(400).send("something went wrong:" + err.message)
-    }
-})
-
-app.patch("/user/:userId",async (req,res)=>{ 
-
-    const userId = req.params.userId;
-    const data= req.body;
-
-    try{
-        const ALLOWED_UPDATES=["photoUrl","about","gender","age","skills"]
-
-   const isUpdateAllowed = Object.keys(data).every((k)=> ALLOWED_UPDATES.includes(k));
-
-   if(!isUpdateAllowed){
-    throw new Error("update not allowed");
-   }
-      const user = await User.findByIdAndUpdate({_id:userId},data,{runValidators:true,returnDocument:true});
-      
-      console.log(user)
-        res.send("user updated successfully");
-
-
-    }
-
-    catch (err) {
-        res.status(400).send("something went wrong:" + err.message)
-    }
-})
-
 app.post("/login",async(req,res)=>{
    
-   try{
-    const{password,emailId,firstName,lastName} = req.body;
+    try{
+     const{password,emailId} = req.body;
+     
+     if(!validator.isEmail(emailId)){
+            throw new Error("Invalid emailId");
+     }
+ 
+     const user = await User.findOne({emailId:emailId});
+ 
+     if(!user){
+         throw new Error("Invalid credentials")
+     }
+ 
+     const isPasswordValid = await user.validatePassword(password);
+ 
+ 
+    if(isPasswordValid){
     
-    if(!validator.isEmail(emailId)){
-           throw new Error("Invalid emailId");
+     //Create a JWt Token
+ 
+    const token = await user.getJWT();
+ 
+ 
+     //Add the token to cookie and send the respons e to the server       
+     res.cookie("token",token,{
+        expires:new Date(Date.now() + 8*3600000)
+     });  
+ 
+ 
+      res.send("login Succcessful!!!")
     }
-
-    const user = await User.findOne({emailId:emailId});
-
-    if(!user){
-        throw new Error("Invalid credentials")
+    else{
+     throw new Error("Invalid credentials")
     }
+ 
+    }
+    catch(err){
+ 
+     res.status(400).send("ERROR :" + err.message)
+    }
+ 
+ 
+ 
+ 
+ })
+ 
+ 
+ app.get("/profile",userAuth, async (req,res)=>{
+ 
+     try {
+         const user = req.user;
+         res.send(user);
+     } 
+     catch (err) {
+         res.status(401).send("ERROR:" + err.message);
+     }
+   })
+ 
+app.post("/sendConnectionRequest",userAuth , async (req,res)=>{
 
-    const isPasswordValid = await bcrypt.compare(password,user.password);
-
-
-   if(isPasswordValid){
-     res.send("login Succcessful!!!")
-   }
-   else{
-    throw new Error("Invalid credentials")
-   }
-
-   }
-   catch(err){
-
-    res.status(400).send("ERROR :" + err.message)
-   }
+    const user = req.user;
+    console.log("connection request");
+    res.send(user.firstName +" sent the connection");
+   })
 
 
 
 
-})
-
-
-
+    
 connectDB().then(()=>{
     console.log("connection established")
     
