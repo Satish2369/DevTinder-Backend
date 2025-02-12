@@ -8,18 +8,20 @@ const cookieParser = require('cookie-parser');
 // Use cookie-parser middleware
 //express.json converts the json object to a  js object which can now be readable
 
-
 app.use(express.json()); 
 app.use(cookieParser());
 
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
-const requestRouter = require("./routes/request")
+const requestRouter = require("./routes/request");
+
 
 
    app.use("/",authRouter);
    app.use("/",profileRouter);
    app.use("/",requestRouter);
+  
+
 
    
 connectDB().then(()=>{
