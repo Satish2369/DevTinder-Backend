@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema({
          },     
          photoUrl:{
             type:String,
-            default:"https://www.freeiconspng.com/thumbs/male-icon/male-icon-19.png",
+            default:"https://static.vecteezy.com/system/resources/previews/028/244/512/original/avatar-user-icon-round-site-user-icon-stock-illustration-vector.jpg",
             validate(value){
                if(!validator.isURL(value)){
                   throw new Error("Invalid url"+ value)
@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema({
          },
          about:{
             type:String,
-            default:"devloper of devTInder"
+            default:"Tech Enthusiastic and a mind reader."
          },
          skills:{ 
             type:[String],

@@ -21,32 +21,31 @@ const {firstName,lastName,password,emailId}=req.body;
 
 
 }
-
-const validateEditProfileData = (req)=>{
-
-
+const validateEditProfileData = (req) => {
   const allowedEditFields = [
-    "firstName","lastName","gender","about","skills","photoUrl","emailId","age"
-  ]
+      "firstName", "lastName", "gender", "about", "skills", "photoUrl", "emailId", "age"
+  ];
 
- const isEditAllowed =  Object.keys(req.body).every((field)=> allowedEditFields.includes(field));
+  // Check if all fields in req.body are allowed
+  const isEditAllowed = Object.keys(req.body).every((field) => allowedEditFields.includes(field));
 
- const {photoUrl,skills} = req.body;
- if(photoUrl &&!validator.isURL(photoUrl)){
-  throw new Error("NOt a valid URl")
- }
- else if (skills && (!Array.isArray(skills) || skills.length > 10)) {
-  throw new Error("Skills must be an array with at most 10 items");
-}
+  if (!isEditAllowed) {
+      throw new Error("Invalid field(s) in request.");
+  }
 
+  const { photoUrl, skills } = req.body;
 
+  if (photoUrl && !validator.isURL(photoUrl)) {
+      throw new Error("Not a valid URL");
+  }
 
+  if (skills && (!Array.isArray(skills) || skills.length > 10)) {
+      throw new Error("Skills must be an array with at most 10 items");
+  }
 
+  return true; // Explicitly return `true` when validation passes
+};
 
-
-return isEditAllowed;
-
-}
 
 const validatePassword = (req)=>{
 
