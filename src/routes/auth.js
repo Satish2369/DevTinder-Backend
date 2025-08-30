@@ -55,6 +55,8 @@ authRouter.post("/login",async(req,res)=>{
    
     try{
      const{password,emailId} = req.body;
+
+     console.log(password,emailId);
      
      if(!validator.isEmail(emailId)){
             throw new Error("Invalid emailId");
