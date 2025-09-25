@@ -41,6 +41,8 @@ const {validateWebhookSignature} = require('razorpay/dist/utils/razorpay-utils')
         
 
 
+
+
        // send response basically
         res.json({...payment.toJSON(),keyId:process.env.RAZORPAY_KEY_ID});
 
@@ -54,14 +56,14 @@ const {validateWebhookSignature} = require('razorpay/dist/utils/razorpay-utils')
 
  })
 
- router.post("/payment/webook", async(req,res)=>{
+ router.post("/payment/webhook", async(req,res)=>{
 
     try{
-        let webhookSignature = req.get["X-Razorpay-Signature"];
+        let webhookSignature = req.get("X-Razorpay-Signature");
    const isWebHookValid = validateWebhookSignature(JSON.stringify(req.body), webhookSignature,process.env.RAZORPAY_WEBHOOK_SECRET);
              
      if(!isWebHookValid){
-        res.status(400).json({msg:"WebHook is invalid"});
+        return  res.status(400).json({msg:"WebHook is invalid"});
      }
 
 
@@ -73,7 +75,7 @@ const {validateWebhookSignature} = require('razorpay/dist/utils/razorpay-utils')
 
     await payment.save();
 
-
+    // make use premium
     const user = await User.findOne({_id:payment.userId});
 
     user.isPremium=true;
@@ -90,6 +92,8 @@ const {validateWebhookSignature} = require('razorpay/dist/utils/razorpay-utils')
     // if(req.body.event=="payment.failed"){
         
     // }
+
+    
  
     // return success most important part 
 
@@ -105,6 +109,17 @@ const {validateWebhookSignature} = require('razorpay/dist/utils/razorpay-utils')
 
  })
 
+ router.get("/premium/verify",userAuth,async (req,res)=>{
+       const user = req.user.toJSON();
 
+       if(user.isPremium){
+         return res.json({isPremium:true});
+       }
+
+       return  res.json({isPremium:false});
+       }
+
+
+)
 
 module.exports = router;
