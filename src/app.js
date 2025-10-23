@@ -5,6 +5,8 @@ const connectDB =  require("./config/database")
 const app = express();
 const cookieParser = require('cookie-parser');
 const cors = require("cors");
+const http = require("http");
+const initialiseSocket = require("./utils/socket")
 
 
 
@@ -15,16 +17,19 @@ require("./utils/cronjob");
 
 const corsOptions = {
     origin: "http://localhost:5173",
-   
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Allow these methods
-    allowedHeaders: ['Content-Type', 'Authorization'] ,
-    // Allow these headers
     credentials: true,
    
 };
 app.use(cors(corsOptions));
 app.use(express.json()); 
 app.use(cookieParser());
+
+
+
+
+
+
+
 
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
@@ -37,11 +42,12 @@ const paymentRouter = require("./routes/payment");
    app.use("/",userRouter);
    app.use("/",paymentRouter);
    
- 
+ const server = http.createServer(app);
+ initialiseSocket(server);
 
 connectDB().then(()=>{
     console.log("connection established")
-app.listen(process.env.PORT,()=>{
+server.listen(process.env.PORT,()=>{
  
 console.log("Server is successfully listening on port on 3000");
 })

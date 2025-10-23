@@ -27,7 +27,7 @@ const {validateWebhookSignature} = require('razorpay/dist/utils/razorpay-utils')
 
         })
 
-        console.log(order);
+         console.log(order);
         const payment = await Payment.create({
             userId:req.user._id,
             orderId:order.id,
